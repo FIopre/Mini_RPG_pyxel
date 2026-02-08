@@ -6,32 +6,33 @@ LOBBY = 0
 GAME = 1
 GAMEOVER = 2
 
-ROOM_SIZE = 128
-SPACE_BETWEEN_ROOM = 32
-CORRIDOR_SIZE = 64
+ROOM_SIZE = 8
+SPACE_BETWEEN_ROOM = ROOM_SIZE//4
+CORRIDOR_SIZE = ROOM_SIZE//2
+NUMBER_OF_ROOM = 5
 
 PLAYER_WITHE = 16
 PLAYER_HEIGHT = 16
 
 monstres = []
 
-def is_a_room(player,dungeon,direction):
+def is_a_room(entitie,dungeon,direction):
     libre = False
     for i in range(len(dungeon.dungeonRoomPos)):
-        if(dungeon.dungeonRoomPos[i][0] < player.x and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > player.x+PLAYER_WITHE and dungeon.dungeonRoomPos[i][1] < player.y and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > player.y+PLAYER_HEIGHT):
-            if direction == 1 and dungeon.dungeonRoomPos[i][1] < player.y-1 and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > player.y+PLAYER_HEIGHT:
+        if(dungeon.dungeonRoomPos[i][0] < entitie.x and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > entitie.x+PLAYER_WITHE and dungeon.dungeonRoomPos[i][1] < entitie.y and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > entitie.y+PLAYER_HEIGHT):
+            if direction == 1 and dungeon.dungeonRoomPos[i][1] < entitie.y-1 and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > entitie.y+PLAYER_HEIGHT:
                 libre = True
-            if direction == 2 and dungeon.dungeonRoomPos[i][0] < player.x and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > player.x+PLAYER_WITHE+1:
+            if direction == 2 and dungeon.dungeonRoomPos[i][0] < entitie.x and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > entitie.x+PLAYER_WITHE+1:
                 libre = True
-            if direction == 3 and dungeon.dungeonRoomPos[i][1] < player.y and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > player.y+PLAYER_HEIGHT+1:
+            if direction == 3 and dungeon.dungeonRoomPos[i][1] < entitie.y and dungeon.dungeonRoomPos[i][3]+dungeon.dungeonRoomPos[i][1] > entitie.y+PLAYER_HEIGHT+1:
                 libre = True
-            if direction == 4 and dungeon.dungeonRoomPos[i][0] < player.x-1 and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > player.x+PLAYER_WITHE:
+            if direction == 4 and dungeon.dungeonRoomPos[i][0] < entitie.x-1 and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > entitie.x+PLAYER_WITHE:
                 libre = True
     return libre
 
 class Dungeon:
     def __init__(self):
-        self.iteration = 50
+        self.iteration = NUMBER_OF_ROOM
         self.x = 0
         self.y = 0
         self.dungeonRoomPos = [] #x,y,w,h
@@ -47,6 +48,8 @@ class Dungeon:
             direction = random.randint(1,4)
             self.dungeonRoomPos.append(self.corridor(direction))
             self.dungeonRoomPos.append(self.room(direction))
+        #Piece final
+        self.dungeonRoomPos.append(self.room(0))
     
     def draw(self,player):
         for i in range(len(self.dungeonRoomPos)):
@@ -60,7 +63,7 @@ class Dungeon:
         yCorridor = self.y
         if direction == 1:
             xCorridor += ROOM_SIZE//2 - CORRIDOR_SIZE//2
-            yCorridor += CORRIDOR_SIZE
+            yCorridor -= CORRIDOR_SIZE*2
             corridor = [xCorridor, yCorridor, CORRIDOR_SIZE, CORRIDOR_SIZE*3]
         elif direction == 2:
             xCorridor += ROOM_SIZE - CORRIDOR_SIZE
@@ -71,22 +74,21 @@ class Dungeon:
             yCorridor += ROOM_SIZE - CORRIDOR_SIZE
             corridor = [xCorridor, yCorridor, CORRIDOR_SIZE, CORRIDOR_SIZE*3]
         else:
-            xCorridor += CORRIDOR_SIZE
+            xCorridor -= CORRIDOR_SIZE*2
             yCorridor += ROOM_SIZE//2 - CORRIDOR_SIZE//2
             corridor = [xCorridor, yCorridor, CORRIDOR_SIZE*3, CORRIDOR_SIZE]
-        
-        print(xCorridor,yCorridor,direction)
         return corridor
             
     def room(self, direction):
         room = [self.x,self.y,ROOM_SIZE,ROOM_SIZE]
+        self.generateZombie
         if direction == 1:
             self.y -= ROOM_SIZE + SPACE_BETWEEN_ROOM
         elif direction == 2:
             self.x += ROOM_SIZE + SPACE_BETWEEN_ROOM
         elif direction == 3:
             self.y += ROOM_SIZE + SPACE_BETWEEN_ROOM
-        else:
+        elif direction == 4:
             self.x -= ROOM_SIZE + SPACE_BETWEEN_ROOM
         return room
 
@@ -124,7 +126,7 @@ class Player:
                 self.y = self.y - self.velocity
         
     
-    def update(self):
+    def update(self, dungeon):
         if pyxel.btnp(pyxel.KEY_P):
             self.noClip = True
         pyxel.camera(self.x-56, self.y-56)
@@ -133,9 +135,9 @@ class Player:
             self.attackDuration = pyxel.frame_count
         if self.attackDuration+15 < pyxel.frame_count:
             self.isAttacking = False
-    
-    def draw(self,dungeon):
         self.deplacement(dungeon)
+    
+    def draw(self):
         pyxel.rect(self.x, self.y, 16, 16, 11)
         if self.isAttacking == True:
             if self.direction == 1:
@@ -171,21 +173,26 @@ class Monstre:
         self.flip = 1
         self.dealDmg = False
         self.isAlive = True
+        self.direction = 2
         
-    def deplacement(self,player):
-        if player.x > self.x+8:
+    def deplacement(self,player,dungeon):
+        if player.x > self.x+8 and is_a_room(self,dungeon,self.direction):
             self.flip = 1 
             self.x = self.x + self.velocity
-        if player.x < self.x-6:
+            self.direction = 2
+        if player.x < self.x-6 and is_a_room(self,dungeon,self.direction):
             self.flip = -1 
             self.x = self.x - self.velocity
-        if player.y > self.y+8:
+            self.direction = 4
+        if player.y > self.y+8 and is_a_room(self,dungeon,self.direction):
             self.y = self.y + self.velocity
-        if player.y < self.y-8:
+            self.direction = 3
+        if player.y < self.y-8 and is_a_room(self,dungeon,self.direction):
             self.y = self.y - self.velocity
+            self.direction = 1
         
     
-    def update(self,player):
+    def update(self,player,dungeon):
         if math.sqrt((player.x-self.x)**2+(player.y-self.y)**2) <= 12 and self.isAttacking == False:
             self.attacking = pyxel.frame_count
             self.isAttacking = True
@@ -200,7 +207,7 @@ class Monstre:
             self.status = "Walking"
         
         if self.status == "Walking":
-            self.deplacement(player)
+            self.deplacement(player,dungeon)
         
         if self.dealDmg == True:
             if player.x < self.x+8 and player.x > self.x-8 and player.y < self.y+8 and player.y > self.y-8:
@@ -283,15 +290,13 @@ class App:
     
     def update_game(self):
         pyxel.mouse(False)
-        self.player.update()
-        if pyxel.btnp(pyxel.KEY_R):
-            monstres.append(Monstre())
+        self.player.update(self.dungeon)
             
         for monstre in monstres:
-            monstre.update(self.player)
+            monstre.update(self.player,self.dungeon)
             if monstre.x < self.player.attackZone[0] + self.player.attackZone[2] and monstre.x + 16 > self.player.attackZone[0] and monstre.y < self.player.attackZone[1] + self.player.attackZone[3] and monstre.y + 16 > self.player.attackZone[1] and self.player.isAttacking == True:
                 monstre.isAlive = False
-            if monstre.update(self.player) == "fin":
+            if monstre.update(self.player,self.dungeon) == "fin":
                 self.scene = GAMEOVER
         
         # Clear les mobs mort
@@ -330,7 +335,7 @@ class App:
     def draw_game(self):
         pyxel.cls(0)
         self.dungeon.draw(self.player)
-        self.player.draw(self.dungeon)
+        self.player.draw()
         for monstre in monstres:
             monstre.draw()
 
