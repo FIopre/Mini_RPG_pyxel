@@ -6,13 +6,14 @@ LOBBY = 0
 GAME = 1
 GAMEOVER = 2
 
-ROOM_SIZE = 8
+ROOM_SIZE = 128
 SPACE_BETWEEN_ROOM = ROOM_SIZE//4
 CORRIDOR_SIZE = ROOM_SIZE//2
-NUMBER_OF_ROOM = 5
+NUMBER_OF_ROOM = 20
 
 PLAYER_WITHE = 16
 PLAYER_HEIGHT = 16
+PLAYER_VELOCITY = 1 # Si la velocite est au dessus de 1 le joueur peut finir bloquer dans les murs
 
 monstres = []
 
@@ -81,7 +82,7 @@ class Dungeon:
             
     def room(self, direction):
         room = [self.x,self.y,ROOM_SIZE,ROOM_SIZE]
-        self.generateZombie
+        self.generateZombie()
         if direction == 1:
             self.y -= ROOM_SIZE + SPACE_BETWEEN_ROOM
         elif direction == 2:
@@ -91,12 +92,19 @@ class Dungeon:
         elif direction == 4:
             self.x -= ROOM_SIZE + SPACE_BETWEEN_ROOM
         return room
+    
+    def generateZombie(self):
+        nb_ennemie = random.randint(1,4)
+        for i in range(nb_ennemie):
+            #On genere pas de zombie dans la premiere salle
+            if (self.x != 0 or self.y != 0):
+                monstres.append(Monstre(self.x+random.randint(20,100),self.y+random.randint(20,100)))
+
 
 class Player:
     def __init__(self):
         self.x = 60
         self.y = 60
-        self.velocity = 1
         # Direction 1 = haut
         # Direction 2 = droite
         # Direction 3 = bas
@@ -111,19 +119,19 @@ class Player:
         if pyxel.btn(pyxel.KEY_RIGHT):
             self.direction = 2
             if is_a_room(self,dungeon,self.direction) or self.noClip == True:
-                self.x = self.x + self.velocity
+                self.x = self.x + PLAYER_VELOCITY
         if pyxel.btn(pyxel.KEY_LEFT):
             self.direction = 4
             if is_a_room(self,dungeon,self.direction) or self.noClip == True:
-                self.x = self.x - self.velocity
+                self.x = self.x - PLAYER_VELOCITY
         if pyxel.btn(pyxel.KEY_DOWN):
             self.direction = 3
             if is_a_room(self,dungeon,self.direction) or self.noClip == True:
-                self.y = self.y + self.velocity
+                self.y = self.y + PLAYER_VELOCITY
         if pyxel.btn(pyxel.KEY_UP):
             self.direction = 1
             if is_a_room(self,dungeon,self.direction) or self.noClip == True:
-                self.y = self.y - self.velocity
+                self.y = self.y - PLAYER_VELOCITY
         
     
     def update(self, dungeon):
@@ -163,9 +171,9 @@ class Player:
         self.direction = 2
 
 class Monstre:
-    def __init__(self):
-        self.x = 60
-        self.y = 60
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
         self.status = "Walking"
         self.velocity = random.uniform(0.1,0.9)
         self.attacking = 0
@@ -174,23 +182,31 @@ class Monstre:
         self.dealDmg = False
         self.isAlive = True
         self.direction = 2
+        self.rangeDetection = 60
         
     def deplacement(self,player,dungeon):
-        if player.x > self.x+8 and is_a_room(self,dungeon,self.direction):
-            self.flip = 1 
-            self.x = self.x + self.velocity
-            self.direction = 2
-        if player.x < self.x-6 and is_a_room(self,dungeon,self.direction):
-            self.flip = -1 
-            self.x = self.x - self.velocity
-            self.direction = 4
-        if player.y > self.y+8 and is_a_room(self,dungeon,self.direction):
-            self.y = self.y + self.velocity
-            self.direction = 3
-        if player.y < self.y-8 and is_a_room(self,dungeon,self.direction):
-            self.y = self.y - self.velocity
-            self.direction = 1
-        
+        if(self.detected(player)):
+            if player.x > self.x+8:
+                self.direction = 2
+                if is_a_room(self,dungeon,self.direction):
+                    self.flip = 1 
+                    self.x = self.x + self.velocity
+            if player.x < self.x-6:
+                self.direction = 4
+                if is_a_room(self,dungeon,self.direction):
+                    self.flip = -1 
+                    self.x = self.x - self.velocity
+            if player.y > self.y+8:
+                self.direction = 3
+                if is_a_room(self,dungeon,self.direction):
+                    self.y = self.y + self.velocity
+            if player.y < self.y-8:
+                self.direction = 1
+                if is_a_room(self,dungeon,self.direction):
+                    self.y = self.y - self.velocity
+    
+    def detected(self,player):
+        return self.x - self.rangeDetection < player.x < self.x + self.rangeDetection and self.y - self.rangeDetection < player.y < self.y + self.rangeDetection
     
     def update(self,player,dungeon):
         if math.sqrt((player.x-self.x)**2+(player.y-self.y)**2) <= 12 and self.isAttacking == False:
