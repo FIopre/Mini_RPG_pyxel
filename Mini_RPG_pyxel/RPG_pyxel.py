@@ -9,13 +9,18 @@ GAMEOVER = 2
 ROOM_SIZE = 128
 SPACE_BETWEEN_ROOM = ROOM_SIZE//4
 CORRIDOR_SIZE = ROOM_SIZE//2
-NUMBER_OF_ROOM = 20
+NUMBER_OF_ROOM = 200
 
 PLAYER_WITHE = 16
 PLAYER_HEIGHT = 16
 PLAYER_VELOCITY = 1 # Si la velocite est au dessus de 1 le joueur peut finir bloquer dans les murs
 
+BULLET_SIZE = 16
+
+MONSTRE_SIZE = 16
+
 monstres = []
+bullets = []
 
 def is_a_room(entitie,dungeon,direction):
     libre = False
@@ -30,6 +35,7 @@ def is_a_room(entitie,dungeon,direction):
             if direction == 4 and dungeon.dungeonRoomPos[i][0] < entitie.x-1 and dungeon.dungeonRoomPos[i][2]+dungeon.dungeonRoomPos[i][0] > entitie.x+PLAYER_WITHE:
                 libre = True
     return libre
+
 
 class Dungeon:
     def __init__(self):
@@ -100,9 +106,42 @@ class Dungeon:
             if (self.x != 0 or self.y != 0):
                 monstres.append(Monstre(self.x+random.randint(20,100),self.y+random.randint(20,100)))
 
-
+class Bullet:
+    def __init__(self, x,y,direction):
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.isAlive = True
+    
+    def update(self):
+        if self.direction == 1:
+            self.y -= 2
+        elif self.direction == 2:
+            self.x += 2
+        elif self.direction == 3:
+            self.y += 2
+        else:
+            self.x -= 2
+    
+    def draw(self):
+        if self.direction == 1:
+            pyxel.blt(self.x,self.y-16,0,16,32,16,16,0,270,2)
+        elif self.direction == 2:
+            pyxel.blt(self.x+16,self.y,0,16,32,16,16,0,0,2)
+        elif self.direction == 3:
+            pyxel.blt(self.x,self.y+16,0,16,32,16,16,0,90,2)
+        else:
+            pyxel.blt(self.x-16,self.y,0,16,32,16,16,0,180,2)
+      
+        
+        
 class Player:
     def __init__(self):
+        self.PlayerVie = {
+            "Coeur": 3,
+            "Vie":3,
+            "CoeurBleu": 0
+        }
         self.x = 60
         self.y = 60
         # Direction 1 = haut
@@ -114,6 +153,9 @@ class Player:
         self.attackDuration = 0
         self.attackZone = [0,0,0,0] # x,y,w,h
         self.noClip = False
+        self.hitable = True
+        self.hitCd = 0
+        self.minimap_open = False
         
     def deplacement(self,dungeon):
         if pyxel.btn(pyxel.KEY_RIGHT):
@@ -137,38 +179,45 @@ class Player:
     def update(self, dungeon):
         if pyxel.btnp(pyxel.KEY_P):
             self.noClip = True
+        self.deplacement(dungeon)
         pyxel.camera(self.x-56, self.y-56)
         if pyxel.btnp(pyxel.KEY_E) and self.isAttacking == False:
             self.isAttacking = True
             self.attackDuration = pyxel.frame_count
+            bullets.append(Bullet(self.x,self.y,self.direction))
+        
+        if pyxel.btnp(pyxel.KEY_TAB):
+            self.minimap_open = not self.minimap_open
+            
         if self.attackDuration+15 < pyxel.frame_count:
             self.isAttacking = False
-        self.deplacement(dungeon)
+        if self.hitable == False and pyxel.frame_count - self.hitCd > 15:
+            self.hitable = True
     
     def draw(self):
-        pyxel.rect(self.x, self.y, 16, 16, 11)
-        if self.isAttacking == True:
-            if self.direction == 1:
-                pyxel.blt(self.x,self.y-16,0,0,32,16,16,0)
-                self.attackZone = [self.x,self.y-16,16,16]
-                
-            elif self.direction == 2:
-                pyxel.blt(self.x+16,self.y,0,0,32,16,16,0,90)
-                self.attackZone = [self.x+16,self.y,16,16]
-                
-            elif self.direction == 3:
-                pyxel.blt(self.x,self.y+16,0,0,32,16,16,0,180)
-                self.attackZone = [self.x,self.y+16,16,16]
-                
+        vie = self.PlayerVie["Vie"]
+        for i in range(self.PlayerVie["Coeur"]) : 
+            if vie > 0:
+                vie=vie-1
+                pyxel.blt(self.x-57+16*i,self.y-57,0,0,96,16,16,5)
             else:
-                pyxel.blt(self.x-16,self.y,0,0,32,16,16,0,270)
-                self.attackZone = [self.x-16,self.y,16,16]
+                pyxel.blt(self.x-57+16*i,self.y-57,0,16,96,16,16,5)
+        for i in range(self.PlayerVie["CoeurBleu"]) :
+            pyxel.blt(self.x-57+18*i,self.y-41,0,32,96,16,16,0)
+
+        if self.minimap_open:
+            pyxel.rectb(self.x-56,self.y-56,128,128,9)
+            pyxel.rect(self.x-56,self.y-56,128,128,10)
+        
+        
+        pyxel.rect(self.x, self.y, 16, 16, 11)
             
     
     def reset(self):
         self.x = 60
         self.y = 60
         self.direction = 2
+        self.PlayerVie["Vie"] = 3
 
 class Monstre:
     def __init__(self,x,y):
@@ -226,8 +275,10 @@ class Monstre:
             self.deplacement(player,dungeon)
         
         if self.dealDmg == True:
-            if player.x < self.x+8 and player.x > self.x-8 and player.y < self.y+8 and player.y > self.y-8:
-                return "fin"
+            if player.x < self.x+8 and player.x > self.x-8 and player.y < self.y+8 and player.y > self.y-8 and player.hitable:
+                player.PlayerVie["Vie"] -= 1
+                player.hitCd = pyxel.frame_count
+                player.hitable = False
 
     
     def draw(self):
@@ -307,13 +358,16 @@ class App:
     def update_game(self):
         pyxel.mouse(False)
         self.player.update(self.dungeon)
-            
+        for bullet in bullets:
+            bullet.update()
+        
         for monstre in monstres:
             monstre.update(self.player,self.dungeon)
-            if monstre.x < self.player.attackZone[0] + self.player.attackZone[2] and monstre.x + 16 > self.player.attackZone[0] and monstre.y < self.player.attackZone[1] + self.player.attackZone[3] and monstre.y + 16 > self.player.attackZone[1] and self.player.isAttacking == True:
-                monstre.isAlive = False
-            if monstre.update(self.player,self.dungeon) == "fin":
-                self.scene = GAMEOVER
+            for bullet in bullets:
+                if monstre.x < bullet.x + BULLET_SIZE and monstre.x + MONSTRE_SIZE > bullet.x and monstre.y < bullet.y + BULLET_SIZE and monstre.y + MONSTRE_SIZE > bullet.y:
+                    monstre.isAlive = False
+        if self.player.PlayerVie["Vie"] <= 0:
+            self.scene = GAMEOVER
         
         # Clear les mobs mort
         for monstre in monstres:
@@ -327,6 +381,7 @@ class App:
         self.player.reset()
         if 48 <= pyxel.mouse_x <= 80 and 60 <= pyxel.mouse_y <= 70:
             if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                self.dungeon = Dungeon()
                 self.scene = GAME
     
     def draw(self):
@@ -352,8 +407,11 @@ class App:
         pyxel.cls(0)
         self.dungeon.draw(self.player)
         self.player.draw()
+        for bullet in bullets:
+            bullet.draw()
         for monstre in monstres:
             monstre.draw()
+        
 
     def draw_gameover(self):
         pyxel.cls(8)
