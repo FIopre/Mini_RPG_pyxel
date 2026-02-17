@@ -5,6 +5,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\RPG_pyxel.py||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Mini_RPG_pyxel\\RPG_pyxel.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\player\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Mini_RPG_pyxel\\scr\\player\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Mini_RPG_pyxel\\scr\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,8 +22,34 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "main.py",
+              "DocumentMoniker": "C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\player\\main.py",
+              "RelativeDocumentMoniker": "Mini_RPG_pyxel\\scr\\player\\main.py",
+              "ToolTip": "C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\player\\main.py",
+              "RelativeToolTip": "Mini_RPG_pyxel\\scr\\player\\main.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-17T07:10:38.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "main.py",
+              "DocumentMoniker": "C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\main.py",
+              "RelativeDocumentMoniker": "Mini_RPG_pyxel\\scr\\main.py",
+              "ToolTip": "C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\scr\\main.py",
+              "RelativeToolTip": "Mini_RPG_pyxel\\scr\\main.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-17T07:09:52.85Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -24,7 +58,7 @@
               "RelativeDocumentMoniker": "Mini_RPG_pyxel\\RPG_pyxel.py",
               "ToolTip": "C:\\Users\\E1504EA\\Documents\\Pyxel\\Mini_RPG_pyxel\\Mini_RPG_pyxel\\RPG_pyxel.py",
               "RelativeToolTip": "Mini_RPG_pyxel\\RPG_pyxel.py",
-              "ViewState": "AgIAAPkAAAAAAAAAAAAAAPoAAAAgAAAAAAAAAA==",
+              "ViewState": "AgIAABgBAAAAAAAAAAAAACABAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
               "WhenOpened": "2026-02-08T11:24:58.982Z",
               "EditorCaption": ""
